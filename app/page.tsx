@@ -7,12 +7,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { CATEGORIES, CategoryType } from "@/types";
 
 export default function Home() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [text, setText] = useState("");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("General");
 
   // 🔥 Load from localStorage on first load
   useEffect(() => {
@@ -34,13 +34,11 @@ export default function Home() {
       id: Date.now(),
       text,
       amount: parseFloat(amount),
-      category,
     };
 
     setTransactions([newTransaction, ...transactions]);
     setText("");
     setAmount("");
-    setCategory("General");
   };
 
   const deleteTransaction = (id: number) => {
@@ -166,19 +164,6 @@ export default function Home() {
             className="w-full p-2 mb-3 rounded bg-gray-800"
           />
 
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-          >
-            <option>General</option>
-            <option>Food</option>
-            <option>Travel</option>
-            <option>Bills</option>
-            <option>Shopping</option>
-            <option>Other</option>
-          </select>
-
           <button
             onClick={addTransaction}
             className="w-full bg-blue-600 p-2 rounded"
@@ -202,7 +187,6 @@ export default function Home() {
 >
   <div>
     <p>{t.text}</p>
-    <p className="text-xs text-gray-400">{t.category}</p>
   </div>
 
   <div className="flex items-center gap-3">
