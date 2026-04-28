@@ -77,7 +77,7 @@ CREATE TRIGGER transactions_updated_at
 
 async function migrate() {
   console.log("▶ Running migrations…");
-  const client = await pool!.connect();
+  const client = await pool.connect();
   try {
     await client.query(SQL);
     console.log("✓ Migrations complete.");
