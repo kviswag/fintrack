@@ -49,6 +49,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  monthly_salary?: number;
   createdAt?: string;
   updatedAt?: string;
 }

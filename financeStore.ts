@@ -122,7 +122,7 @@ export const useFinanceStore = create<FinanceStore>()(
       // ── Auth ────────────────────────────────────────────────────────────────
 
       login(user, token) {
-        set({ user, token, isAuthenticated: true, onboardingComplete: user.monthly_salary > 0 });
+        set({ user, token, isAuthenticated: true, onboardingComplete: true });
         get().recomputeBudget();
       },
 
@@ -242,7 +242,7 @@ export const useFinanceStore = create<FinanceStore>()(
       recomputeBudget() {
         const { user, transactions } = get();
         if (!user) return;
-        const summary = computeBudgetSummary(user.monthly_salary, transactions);
+        const summary = computeBudgetSummary(user.monthly_salary ?? 0, transactions);
         set({ budgetSummary: summary });
       },
     }),
@@ -273,7 +273,7 @@ export const selectFilteredTransactions = (state: FinanceStore) => {
     const q = state.search.toLowerCase();
     txns = txns.filter(
       (t) =>
-        t.description.toLowerCase().includes(q) ||
+        (t.description?.toLowerCase().includes(q) ?? false) ||
         t.category.toLowerCase().includes(q)
     );
   }
@@ -288,10 +288,10 @@ export const selectFilteredTransactions = (state: FinanceStore) => {
         cmp = a.category.localeCompare(b.category);
         break;
       case "description":
-        cmp = a.description.localeCompare(b.description);
+        cmp = (a.description ?? "").localeCompare(b.description ?? "");
         break;
       default:
-        cmp = a.date.localeCompare(b.date);
+        cmp = String(a.date).localeCompare(String(b.date));
     }
     return state.sortDir === "asc" ? cmp : -cmp;
   });
