@@ -2,47 +2,41 @@ import {
   Transaction,
   BudgetSummary,
   AllocationBucket,
-  CATEGORIES,
-  CategoryType,
-} from "@/types";
+} from "@/types"; 
 
 // ─── 50/30/20 Rule constants ──────────────────────────────────────────────────
 
 const BUCKETS_CONFIG: {
   label: string;
   pct: number;
-  type: CategoryType;
+  type: string;
   color: string;
-  categories: string[];
 }[] = [
   {
     label: "Essentials",
     pct: 0.5,
     type: "essential",
     color: "#ef4444",
-    categories: ["Housing", "Food", "Transport", "Utilities", "Healthcare"],
   },
   {
     label: "Lifestyle",
     pct: 0.3,
     type: "lifestyle",
     color: "#8b5cf6",
-    categories: ["Entertainment", "Shopping", "Dining", "Travel"],
   },
   {
     label: "Goals",
     pct: 0.2,
     type: "goal",
     color: "#10b981",
-    categories: ["Savings", "Investment"],
   },
 ];
 
 // ─── Core budget functions ────────────────────────────────────────────────────
 
-function sumByType(transactions: Transaction[], type: CategoryType): number {
+function sumByType(transactions: Transaction[], type: string): number {
   return transactions
-    .filter((t) => CATEGORIES[t.category]?.type === type)
+    .filter((t) => t.category === type)
     .reduce((acc, t) => acc + Number(t.amount), 0);
 }
 
@@ -127,7 +121,6 @@ export function computeBudgetSummary(
     budget: salary * cfg.pct,
     spent: sumByType(transactions, cfg.type),
     color: cfg.color,
-    categories: cfg.categories,
   }));
 
   return {
@@ -163,8 +156,8 @@ export function spendingByCategoryThisMonth(
     .map(([cat, amount]) => ({
       category: cat,
       amount,
-      color: CATEGORIES[cat]?.color ?? "#6b7280",
-      icon: CATEGORIES[cat]?.icon ?? "📦",
+      color: "#6b7280",
+      icon: "📦",
     }))
     .sort((a, b) => b.amount - a.amount);
 }

@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { CATEGORIES, CategoryType } from "@/types";
 
 export default function Home() {
   const [transactions, setTransactions] = useState<any[]>([]);
