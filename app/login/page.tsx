@@ -8,8 +8,8 @@ export default function Login() {
 
   useEffect(() => {
     const user = localStorage.getItem("user");
-    if (!user) {
-      router.push("/login");
+    if (user) {
+       router.push("/");
     }
   }, []);
 
