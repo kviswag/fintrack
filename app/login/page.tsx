@@ -2,146 +2,126 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const [text, setText] = useState("");
-  const [income, setIncome] = useState("");
-  const [expense, setExpense] = useState("");
-  const [transactions, setTransactions] = useState<any[]>([]);
-
-  // 🔐 Protect route
+  // Redirect if already logged in
   useEffect(() => {
     const user = localStorage.getItem("user");
-    if (!user) {
-      router.push("/login");
-    }
+    if (user) router.push("/");
   }, []);
 
-  // ➕ Add transaction
-  const addTransaction = () => {
-    if (!text) return;
+  // Email validation
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-    let value = 0;
-
-    if (income) {
-      value = Math.abs(parseFloat(income));
-    } else if (expense) {
-      value = -Math.abs(parseFloat(expense));
-    } else {
+  // 🔥 REAL LOGIN (API)
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("All fields are required");
       return;
     }
 
-    const newTransaction = {
-      id: Date.now(),
-      text,
-      amount: value,
-    };
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email address");
+      return;
+    }
 
-    setTransactions([newTransaction, ...transactions]);
+    setError("");
+    setLoading(true);
 
-    setText("");
-    setIncome("");
-    setExpense("");
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Invalid credentials");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Save login
+      localStorage.setItem("user", email);
+
+      router.push("/");
+    } catch (err) {
+      setError("Server error. Try again.");
+      setLoading(false);
+    }
   };
 
-  // 💰 Calculations
-  const total = transactions.reduce((acc, t) => acc + t.amount, 0);
-  const totalIncome = transactions
-    .filter((t) => t.amount > 0)
-    .reduce((acc, t) => acc + t.amount, 0);
-
-  const totalExpense = transactions
-    .filter((t) => t.amount < 0)
-    .reduce((acc, t) => acc + t.amount, 0);
-
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white px-4">
+      <div className="bg-gray-900 p-6 rounded-2xl w-full max-w-sm border border-gray-800 shadow-lg">
 
-      {/* 🔴 Logout */}
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => {
-            localStorage.removeItem("user");
-            router.push("/login");
-          }}
-          className="bg-red-600 px-3 py-1 rounded"
-        >
-          Logout
-        </button>
-      </div>
+        <h2 className="text-xl mb-5 text-center font-semibold">
+          Welcome Back
+        </h2>
 
-      <h1 className="text-2xl mb-4">💰 FinTrack Dashboard</h1>
-
-      {/* 💰 Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-gray-800 p-4 rounded">
-          <p>Total</p>
-          <h2>₹ {total}</h2>
-        </div>
-        <div className="bg-green-800 p-4 rounded">
-          <p>Income</p>
-          <h2>₹ {totalIncome}</h2>
-        </div>
-        <div className="bg-red-800 p-4 rounded">
-          <p>Expense</p>
-          <h2>₹ {totalExpense}</h2>
-        </div>
-      </div>
-
-      {/* ➕ Add Transaction */}
-      <div className="bg-gray-900 p-4 rounded mb-6">
+        {/* Email */}
         <input
-          type="text"
-          placeholder="Description"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          type="email"
+          placeholder="Email"
+          className="w-full p-2 mb-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-gray-500"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
         />
 
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Password */}
+        <div className="relative mb-3">
           <input
-            type="number"
-            placeholder="Income"
-            value={income}
-            onChange={(e) => setIncome(e.target.value)}
-            className="w-full p-2 rounded bg-green-900"
-            disabled={expense !== ""}
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-gray-500"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLogin();
+            }}
           />
 
-          <input
-            type="number"
-            placeholder="Expense"
-            value={expense}
-            onChange={(e) => setExpense(e.target.value)}
-            className="w-full p-2 rounded bg-red-900"
-            disabled={income !== ""}
-          />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-2 text-sm text-gray-400 cursor-pointer"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </span>
         </div>
 
+        {/* Error */}
+        {error && (
+          <p className="text-red-400 text-sm mb-3">
+            {error}
+          </p>
+        )}
+
+        {/* Button */}
         <button
-          onClick={addTransaction}
-          className="w-full bg-blue-600 p-2 rounded"
+          onClick={handleLogin}
+          disabled={loading}
+          className="w-full bg-blue-600 p-2 rounded disabled:opacity-50 hover:bg-blue-700 transition"
         >
-          Add Transaction
+          {loading ? "Logging in..." : "Login"}
         </button>
-      </div>
 
-      {/* 📜 Transactions */}
-      <div className="bg-gray-900 p-4 rounded">
-        <h2 className="mb-3">Transactions</h2>
-
-        {transactions.map((t) => (
-          <div
-            key={t.id}
-            className={`flex justify-between p-2 mb-2 rounded ${
-              t.amount > 0 ? "bg-green-700" : "bg-red-700"
-            }`}
-          >
-            <span>{t.text}</span>
-            <span>₹ {t.amount}</span>
-          </div>
-        ))}
       </div>
     </div>
   );
